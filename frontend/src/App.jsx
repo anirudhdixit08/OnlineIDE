@@ -4,7 +4,6 @@ import { highlight, languages } from "prismjs/components/prism-core";
 import "prismjs/components/prism-clike";
 import "prismjs/components/prism-c";
 import "prismjs/components/prism-cpp";
-import "prismjs/components/prism-javascript";
 import "prismjs/themes/prism.css";
 import "prismjs/components/prism-python";
 import "prismjs/components/prism-java";
@@ -38,7 +37,6 @@ int main() {
 }`,
   py: `# Python
 import sys
-
 # Read from standard input
 try:
     a = int(sys.stdin.readline())
@@ -98,6 +96,8 @@ function App() {
   const [input, setInput] = useState(inputTemplates["cpp"]);
   const [loading, setLoading] = useState(false);
   const [runClicked, setRunClicked] = useState(false);
+  const [jobId, setJobId] = useState(null); 
+  const [jobStatus, setJobStatus] = useState("pending");
 
   useEffect(() => {
     setCode(codeTemplates[language]);
@@ -125,20 +125,41 @@ function App() {
     setLoading(true);
     setOutput("Running...");
     setRunClicked(true);
+    setJobId(null); 
+    setJobStatus("pending");
 
     const payload = {
       language,
       code,
-      input, 
+      input,
     };
 
     try {
       const { data } = await axios.post("http://localhost:3000/run", payload);
-      if (data && data.output !== undefined) {
-        setOutput(data.output);
-      } else {
-        setOutput("Unexpected response from server.");
-      }
+      setJobId(data.jobId);
+      
+      const intervalId = setInterval(async () => {
+        const { data: statusData } = await axios.get("http://localhost:3000/status", {
+          params: { id: data.jobId }
+        });
+        
+        console.log(`Job ID: ${data.jobId}, Status: ${statusData.job.status}`);
+        setJobStatus(statusData.job.status);
+
+        if (statusData.success && (statusData.job.status === "success" || statusData.job.status === "error")) {
+          if (statusData.job.status === "success") {
+            // FIX: Removed jobId from the output
+            setOutput(statusData.job.output);
+          } else {
+            const error = JSON.parse(statusData.job.output);
+            const errorMessage = error?.error?.stderr || error?.error?.message || "An unexpected error occurred.";
+            setOutput(`Error: ${errorMessage}`);
+          }
+          clearInterval(intervalId);
+          setLoading(false);
+        }
+      }, 500); 
+
     } catch (error) {
       console.error(error.response);
       const errorMessage =
@@ -146,7 +167,6 @@ function App() {
         error.response?.data?.error ||
         "An unexpected error occurred.";
       setOutput(`Error: ${errorMessage}`);
-    } finally {
       setLoading(false);
     }
   };
@@ -229,13 +249,8 @@ function App() {
                   border: "none",
                   backgroundColor: "#2d3748",
                   color: "#f7fafc",
-                  "& .token-line": {
-                    whiteSpace: "pre-wrap",
-                  },
-                  "& > pre": {
-                    height: "100%",
-                    overflow: "auto",
-                  },
+                  height: "100%",
+                  overflowY: "auto",
                 }}
                 className="w-full no-ligatures"
               />
