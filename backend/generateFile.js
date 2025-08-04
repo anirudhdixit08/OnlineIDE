@@ -40,8 +40,6 @@ const generateFile = async (format, content) => {
     }
 
     const filePath = path.join(dirCodes, filename);
-    // **THIS IS THE CORRECTED LINE:**
-    // It now writes the 'fileContent' (the modified code) to the file.
     await fs.writeFileSync(filePath, fileContent);
     return filePath;
 };
