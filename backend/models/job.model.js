@@ -6,9 +6,13 @@ const JobSchema = mongoose.Schema({
     required: true,
     enum: ["cpp", "py","java","c","js"],
   },
-  filepath: {
+  filePath: {
     type: String,
-    required: true,
+    // required: true,
+  },
+  inputFilePath: {
+    type: String,
+    // required: true,
   },
   submittedAt: {
     type: Date,

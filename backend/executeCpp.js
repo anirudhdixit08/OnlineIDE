@@ -15,6 +15,9 @@ const executeCpp = (filepath, inputFilePath) => {
   const outPath = path.join(outputPath, `${jobId}.out`);
 
   return new Promise((resolve, reject) => {
+    console.log(filepath);
+    console.log(outPath);
+    console.log(inputFilePath);
     exec(
       `g++ ${filepath} -o ${outPath} && cd ${outputPath} && ./${jobId}.out ${inputFilePath ? `< ${inputFilePath}` : ''}`,
       (error, stdout, stderr) => {

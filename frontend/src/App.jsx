@@ -244,7 +244,8 @@ function App() {
                 padding={10}
                 style={{
                   fontFamily: "ui-monospace",
-                  fontSize: 12,
+                  // FIX: Increased font size for better readability
+                  fontSize: 16, 
                   outline: "none",
                   border: "none",
                   backgroundColor: "#2d3748",

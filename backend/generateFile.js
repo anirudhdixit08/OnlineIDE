@@ -12,10 +12,10 @@ function escapeRegExp(string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); 
 }
 
-const generateFile = async (format, content) => {
+// FIX: Added jobId as an argument
+const generateFile = async (format, content, jobId) => {
     let filename;
     let fileContent = content;
-    const jobID = uuid(); 
     
     if (format === 'java') {
         const classNameRegex = /public\s+class\s+([a-zA-Z_$][a-zA-Z0-9_$]*)/;
@@ -26,7 +26,7 @@ const generateFile = async (format, content) => {
             originalClassName = match[1];
         }
 
-        const newClassName = `${originalClassName}_${jobID.replace(/-/g, '_')}`;
+        const newClassName = `${originalClassName}_${jobId}`;
         filename = `${newClassName}.${format}`;
 
         const updatedContent = content.replace(
@@ -36,7 +36,8 @@ const generateFile = async (format, content) => {
         fileContent = updatedContent;
 
     } else {
-        filename = `${jobID}.${format}`;
+        // FIX: Use the provided jobId for the filename
+        filename = `${jobId}.${format}`;
     }
 
     const filePath = path.join(dirCodes, filename);
