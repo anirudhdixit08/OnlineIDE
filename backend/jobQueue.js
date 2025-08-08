@@ -14,7 +14,8 @@ dotenv.config();
 
 const connectDB = async () => {
     try {
-        await mongoose.connect('mongodb://localhost:27017/mycompilerdb');
+        // await mongoose.connect('mongodb://localhost:27017/mycompilerdb');
+        await mongoose.connect(process.env.MONGO_URI);
         console.log("Worker connected to MongoDB");
     } catch (err) {
         console.error("Worker could not connect to MongoDB...", err);
@@ -24,7 +25,8 @@ const connectDB = async () => {
 
 connectDB();
 
-const jobQueue = new Queue("job-queue");
+// const jobQueue = new Queue("job-queue");
+const jobQueue = new Queue("job-queue", process.env.REDIS_URI);
 const NUM_WORKERS = 5;
 
 jobQueue.process(NUM_WORKERS, async (job) => {
@@ -43,7 +45,6 @@ jobQueue.process(NUM_WORKERS, async (job) => {
 
     try {
       let output;
-      // FIX: Removed the check for file paths as they are generated on the server.
       
       switch (jobFind.language) {
         case "cpp":
@@ -59,7 +60,7 @@ jobQueue.process(NUM_WORKERS, async (job) => {
           output = await executeC(jobFind.filePath, jobFind.inputFilePath);
           break;
         case "js":
-          output = await executeJs(jobFind.filePath);
+          output = await executeJs(jobFind.filePath,jobFind.inputFilePath);
           break;
         default:
           throw new Error(`Unsupported language: ${jobFind.language}`);
@@ -83,9 +84,7 @@ jobQueue.on("failed", (job, error) => {
     console.error(`Job ID ${job.id} failed with reason:`, error.message);
 });
 
-// FIX: Added a timeout option with a default value of 60 seconds
-const addJobToQueue = async(jobId, options = { timeout: 60000 }) => {
-    // FIX: Added a try...catch block to handle errors when adding a job
+const addJobToQueue = async(jobId, options = { timeout: 10000 }) => {
     try {
         await jobQueue.add({id : jobId}, options);
         console.log(`Job with ID ${jobId} successfully added to the queue.`);

@@ -1,0 +1,34 @@
+# version: '3.8'
+
+# services:
+#   backend:
+#     build: .
+#     container_name: backend_container
+#     ports:
+#       - "3000:3000"
+#     environment:
+#       # Use the MONGO_URI variable with your Atlas connection string
+#       - MONGO_URI=mongodb+srv://anirudhdixitsjknp:anirudhdixitsjknp@cluster0.dfaxl0c.mongodb.net/job
+
+
+version: '3.8'
+
+services:
+  redis:
+    image: redis:6.2-alpine
+    container_name: redis_container
+    ports:
+      - "6380:6379"
+
+  backend:
+    build: .
+    container_name: backend_container
+    ports:
+      - "3000:3000"
+    environment:
+      # Use the MONGO_URI for MongoDB Atlas
+      - MONGO_URI=mongodb+srv://anirudhdixitsjknp:anirudhdixitsjknp@cluster0.dfaxl0c.mongodb.net/job
+      # Use the Redis service name as the host
+      - REDIS_URI=redis://redis:6379
+    depends_on:
+      - redis

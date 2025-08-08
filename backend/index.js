@@ -21,7 +21,8 @@ app.use(express.json());
 
 const connectDB = async () => {
   try {
-      await mongoose.connect('mongodb://localhost:27017/mycompilerdb');
+      // await mongoose.connect('mongodb://localhost:27017/mycompilerdb');
+      await mongoose.connect(process.env.MONGO_URI);
       console.log("Connected to MongoDB");
   } catch (err) {
       console.error("Could not connect to MongoDB...", err);
@@ -60,7 +61,6 @@ app.post("/run", async (req, res) => {
   }
 
   try {
-    // FIX: First, create and save the job to get a unique ID
     let job = await new Job({
       language,
       code,
@@ -70,7 +70,6 @@ app.post("/run", async (req, res) => {
     
     const jobId = job._id;
 
-    // FIX: Use the new jobId to generate the file paths
     const filePath = await generateFile(language, code, jobId);
     
     let inputFilePath;
@@ -78,7 +77,6 @@ app.post("/run", async (req, res) => {
       inputFilePath = await generateInputFile(input, jobId);
     }
 
-    // FIX: Update the job document with the generated file paths
     job.filePath = filePath;
     job.inputFilePath = inputFilePath;
     await job.save();
